@@ -1,14 +1,12 @@
 package principal;
 
-import controller.PacienteController;
+import controller.LoginController;
 
 public class Main {
 
     public static void main(String[] args) {
-        // Cria o controlador
-        PacienteController controller = new PacienteController();
-        
-        // Inicia a aplicação
-        controller.iniciar();
+        // Ponto de entrada da aplicação agora é o Login
+        LoginController loginController = new LoginController();
+        loginController.iniciar();
     }
 }

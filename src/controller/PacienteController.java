@@ -1,80 +1,59 @@
 package controller;
 
-import dao.PacienteDAO;
+import dao.LembreteDAO;
+import dao.MedicaoDAO; // Importe
 import java.util.List;
+import model.Lembrete;
 import model.Paciente;
+import view.LembreteView;
+import view.MedicaoView; // Importe
 import view.PacienteView;
 
 public class PacienteController {
     
-    private PacienteDAO dao;
+    private Paciente pacienteLogado;
     private PacienteView view;
-
-    public PacienteController() {
-        this.dao = new PacienteDAO();
+    private LembreteView lembreteView;
+    private MedicaoView medicaoView; // Adicione
+    
+    public PacienteController(Paciente pacienteLogado) {
+        this.pacienteLogado = pacienteLogado;
         this.view = new PacienteView();
+        this.lembreteView = new LembreteView();
+        this.medicaoView = new MedicaoView(); // Instancie
     }
     
     public void iniciar() {
         int opcao;
-        
         do {
-            opcao = view.exibirMenu();
+            opcao = view.exibirMenuPaciente(); 
             
             switch (opcao) {
                 case 1:
-                    cadastrarPaciente();
+                    visualizarMeusLembretes();
                     break;
                 case 2:
-                    listarPacientes();
-                    break;
-                case 3:
-                    atualizarPaciente();
-                    break;
-                case 4:
-                    excluirPaciente();
+                    visualizarMinhasMedicoes(); // Nova função
                     break;
                 case 0:
-                    view.exibirMensagem("Saindo do sistema...");
+                    view.exibirMensagem("Voltando ao menu principal...");
                     break;
                 default:
                     view.exibirMensagem("Opção inválida!");
             }
-            
         } while (opcao != 0);
     }
     
-    private void cadastrarPaciente() {
-        view.exibirMensagem("--- Cadastro de Novo Paciente ---");
-        Paciente p = view.obterDadosPaciente(null);
-        dao.salvar(p);
+    private void visualizarMeusLembretes() {
+        LembreteDAO dao = new LembreteDAO();
+        List<Lembrete> lembretes = dao.listarPorPaciente(pacienteLogado.getId_paciente());
+        lembreteView.exibirListaLembretes(lembretes);
     }
     
-    private void listarPacientes() {
-        List<Paciente> pacientes = dao.listarTodos();
-        view.listarPacientes(pacientes);
-    }
-    
-    private void atualizarPaciente() {
-        view.exibirMensagem("--- Atualização de Paciente ---");
-        listarPacientes(); // Mostra a lista para o usuário saber qual ID
-        int id = view.obterIdPacienteParaAtualizar();
-        if (id == -1) return;
-
-        // Simples: Pede todos os dados novamente
-        // (Uma versão melhor buscaria o paciente pelo ID primeiro)
-        Paciente p = view.obterDadosPaciente(null); 
-        p.setId_paciente(id); // Seta o ID para o UPDATE
-        
-        dao.atualizar(p);
-    }
-    
-    private void excluirPaciente() {
-        view.exibirMensagem("--- Exclusão de Paciente ---");
-        listarPacientes(); // Mostra a lista
-        int id = view.obterIdPacienteParaExcluir();
-        if (id == -1) return;
-        
-        dao.excluir(id);
+    // FUNÇÃO PARA PACIENTE VER MEDIÇÕES
+    private void visualizarMinhasMedicoes() {
+        MedicaoDAO dao = new MedicaoDAO();
+        List<String> medicoes = dao.listarMedicoesPorPaciente(pacienteLogado.getId_paciente());
+        medicaoView.listarMedicoes(medicoes);
     }
 }

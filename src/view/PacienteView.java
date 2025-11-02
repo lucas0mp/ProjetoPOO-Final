@@ -13,31 +13,47 @@ public class PacienteView {
 
     public PacienteView() {
         this.scanner = new Scanner(System.in);
-        // Formato brasileiro de data
         this.formatadorData = new SimpleDateFormat("dd/MM/yyyy");
     }
 
-    public int exibirMenu() {
-        System.out.println("\n--- CRUD Pacientes ---");
+    // Menu para o PACIENTE LOGADO
+    public int exibirMenuPaciente() {
+        System.out.println("\n--- Portal do Paciente ---");
+        System.out.println("1. Visualizar meus Lembretes de Medicação");
+        System.out.println("2. Visualizar meu Histórico de Medições");
+        // System.out.println("3. Adicionar medicação (Auto-Reporte)"); // Futura implementação
+        System.out.println("0. Sair (Logout)");
+        System.out.print("Escolha uma opção: ");
+        
+        try {
+            return Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    // Menu para o ADMIN (CRUD)
+    public int exibirMenuAdminCRUD() {
+        System.out.println("\n--- CRUD Pacientes (Admin) ---");
         System.out.println("1. Cadastrar Novo Paciente");
         System.out.println("2. Listar Todos os Pacientes");
         System.out.println("3. Atualizar Paciente");
         System.out.println("4. Excluir Paciente");
-        System.out.println("0. Sair");
+        System.out.println("0. Voltar ao Menu Admin");
         System.out.print("Escolha uma opção: ");
         
-        int opcao = -1;
         try {
-            opcao = Integer.parseInt(scanner.nextLine());
+            return Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
-            System.err.println("Opção inválida. Digite apenas números.");
+            return -1;
         }
-        return opcao;
     }
 
+    // Método reutilizado por Admin e Médico
     public Paciente obterDadosPaciente(Paciente pacienteExistente) {
         Paciente p = (pacienteExistente == null) ? new Paciente() : pacienteExistente;
-
+        
+        System.out.println("Coletando dados do paciente...");
         System.out.print("Nome: ");
         p.setNome(scanner.nextLine());
         
@@ -62,29 +78,24 @@ public class PacienteView {
         return p;
     }
 
+    public String obterSenha() {
+        System.out.print("Defina uma senha para o usuário: ");
+        return scanner.nextLine();
+    }
+    
     public void listarPacientes(List<Paciente> pacientes) {
         System.out.println("\n--- Lista de Pacientes ---");
         if (pacientes.isEmpty()) {
             System.out.println("Nenhum paciente cadastrado.");
         } else {
             for (Paciente p : pacientes) {
-                System.out.println(p.toString());
+                System.out.println(p.toString()); // Use o toString() que você já tinha
             }
         }
     }
     
-    public int obterIdPacienteParaAtualizar() {
-        System.out.print("Digite o ID do paciente que deseja ATUALIZAR: ");
-        try {
-            return Integer.parseInt(scanner.nextLine());
-        } catch (NumberFormatException e) {
-            System.err.println("ID inválido.");
-            return -1;
-        }
-    }
-    
-    public int obterIdPacienteParaExcluir() {
-        System.out.print("Digite o ID do paciente que deseja EXCLUIR: ");
+    public int obterIdPaciente(String acao) { // "ATUALIZAR" ou "EXCLUIR" ou "SELECIONAR"
+        System.out.print("Digite o ID do paciente que deseja " + acao + ": ");
         try {
             return Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
