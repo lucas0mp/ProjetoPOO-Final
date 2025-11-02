@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/principal/Main.java</file>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/model/Paciente.java</file>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/model/Medicao.java</file>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/model/MedicaoGlicemia.java</file>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/model/MedicaoPressao.java</file>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/DAO/ConexaoMySQL.java</file>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/DAO/PacienteDAO.java</file>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/view/PacienteView.java</file>
+            <file>file:/C:/Users/lucas/OneDrive/Documentos/NetBeansProjects/ProjetoPOO/src/controller/PacienteController.java</file>
+        </group>
+    </open-files>
+</project-private>
