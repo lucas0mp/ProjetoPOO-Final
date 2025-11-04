@@ -1,0 +1,214 @@
+-- Remove o banco de dados se ele já existir (para um script limpo)
+DROP DATABASE IF EXISTS acompanhamento_doencas_cronicas;
+
+-- Cria o banco de dados e seleciona para uso
+CREATE DATABASE acompanhamento_doencas_cronicas;
+USE acompanhamento_doencas_cronicas;
+
+-- Tabela paciente (COM COLUNA SENHA)
+CREATE TABLE paciente (
+    id_paciente INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(255) NOT NULL,
+    cpf VARCHAR(11) UNIQUE NOT NULL,
+    data_nascimento DATE,
+    telefone_celular VARCHAR(20),
+    telefone_residencial VARCHAR(20),
+    email VARCHAR(255),
+    senha VARCHAR(100) NOT NULL -- MODIFICAÇÃO
+);
+
+-- Tabela medico (COM COLUNA SENHA)
+CREATE TABLE medico (
+    id_medico INT PRIMARY KEY AUTO_INCREMENT,
+    crm VARCHAR(20) UNIQUE NOT NULL,
+    nome VARCHAR(255) NOT NULL,
+    especialidade VARCHAR(100),
+    senha VARCHAR(100) NOT NULL -- MODIFICAÇÃO
+);
+
+-- Tabela administrador (NOVA TABELA)
+CREATE TABLE administrador (
+    id_admin INT PRIMARY KEY AUTO_INCREMENT,
+    usuario VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(100) NOT NULL,
+    nome VARCHAR(255)
+);
+
+-- Tabela doenca_cronica
+CREATE TABLE doenca_cronica (
+    id_doenca INT PRIMARY KEY AUTO_INCREMENT,
+    nome_cientifico VARCHAR(255) UNIQUE NOT NULL,
+    nome_popular VARCHAR(255)
+);
+
+-- Tabela medicamento
+CREATE TABLE medicamento (
+    id_medicamento INT PRIMARY KEY AUTO_INCREMENT,
+    nome_comercial VARCHAR(255) NOT NULL,
+    principio_ativo VARCHAR(255)
+);
+
+-- Tabela de relacionamento acompanha (COM ON DELETE CASCADE)
+CREATE TABLE acompanha (
+    id_medico INT,
+    id_paciente INT,
+    PRIMARY KEY (id_medico, id_paciente),
+    FOREIGN KEY (id_medico) REFERENCES medico(id_medico)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE, -- MODIFICAÇÃO
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE -- MODIFICAÇÃO
+);
+
+-- Tabela de relacionamento diagnostica (COM ON DELETE CASCADE)
+CREATE TABLE diagnostica (
+    id_paciente INT,
+    id_doenca INT,
+    PRIMARY KEY (id_paciente, id_doenca),
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE, -- MODIFICAÇÃO
+    FOREIGN KEY (id_doenca) REFERENCES doenca_cronica(id_doenca)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE -- MODIFICAÇÃO (Boa prática)
+);
+
+-- Tabela prescricao (COM ON DELETE CASCADE)
+CREATE TABLE prescricao (
+    id_prescricao INT PRIMARY KEY AUTO_INCREMENT,
+    id_medico INT,
+    id_paciente INT,
+    id_medicamento INT,
+    data_inicio DATE NOT NULL,
+    dosagem VARCHAR(50),
+    frequencia VARCHAR(50),
+    instrucoes_adicionais TEXT,
+    FOREIGN KEY (id_medico) REFERENCES medico(id_medico)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE, -- MODIFICAÇÃO
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE, -- MODIFICAÇÃO
+    FOREIGN KEY (id_medicamento) REFERENCES medicamento(id_medicamento)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE -- MODIFICAÇÃO (Boa prática)
+);
+
+-- Tabela lembrete (COM ON DELETE CASCADE)
+CREATE TABLE lembrete (
+    id_lembrete INT PRIMARY KEY AUTO_INCREMENT,
+    id_prescricao INT,
+    horario_programado DATETIME NOT NULL,
+    status VARCHAR(50),
+    FOREIGN KEY (id_prescricao) REFERENCES prescricao(id_prescricao)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE -- MODIFICAÇÃO (Necessário se a prescrição for deletada)
+);
+
+-- Tabela base para medições (COM ON DELETE CASCADE)
+CREATE TABLE medicao (
+    id_medicao INT PRIMARY KEY AUTO_INCREMENT,
+    id_paciente INT,
+    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    observacoes TEXT,
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE -- MODIFICAÇÃO
+);
+
+-- Tabela para medição de glicemia
+CREATE TABLE medicao_glicemia (
+    id_medicao INT PRIMARY KEY,
+    nivel_glicose DECIMAL(5, 2) NOT NULL,
+    periodo VARCHAR(50),
+    FOREIGN KEY (id_medicao) REFERENCES medicao(id_medicao)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+-- Tabela para medição de pressão
+CREATE TABLE medicao_pressao (
+    id_medicao INT PRIMARY KEY,
+    pressao_sistolica DECIMAL(5, 2) NOT NULL,
+    pressao_diastolica DECIMAL(5, 2) NOT NULL,
+    FOREIGN KEY (id_medicao) REFERENCES medicao(id_medicao)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+--
+-- INSERÇÃO DE DADOS DE EXEMPLO
+--
+
+-- Inserindo dados na tabela PACIENTE (COM SENHA)
+INSERT INTO paciente (nome, cpf, data_nascimento, telefone_celular, telefone_residencial, email, senha) VALUES
+('Carlos Santana', '11122233344', '1955-07-20', '11987654321', '1145678901', 'carlos.santana@email.com', '123'),
+('Mariana Costa', '22233344455', '1982-03-15', '21998877665', '2123456789', 'mariana.costa@email.com', '123'),
+('João Pedro', '33344455566', '1990-11-01', '31988887777', '3134567890', 'joao.pedro@email.com', '123'),
+('Ana Oliveira', '44455566677', '1978-01-30', '41977776666', '4145678901', 'ana.oliveira@email.com', '123');
+
+-- Inserindo dados na tabela MEDICO (COM SENHA)
+INSERT INTO medico (crm, nome, especialidade, senha) VALUES
+('12345-SP', 'Dr. Roberto Alves', 'Cardiologia', '123'),
+('54321-RJ', 'Dra. Lúcia Martins', 'Endocrinologia', '123'),
+('67890-MG', 'Dr. Fernando Dias', 'Clínica Geral', '123');
+
+-- Inserindo dados na tabela ADMINISTRADOR
+INSERT INTO administrador (usuario, senha, nome) VALUES 
+('admin', 'admin123', 'Administrador Chefe');
+
+-- Inserindo dados na tabela DOENCA_CRONICA
+INSERT INTO doenca_cronica (nome_cientifico, nome_popular) VALUES
+('Hipertensão Arterial Sistêmica', 'Pressão Alta'),
+('Diabetes Mellitus Tipo 2', 'Diabetes');
+
+-- Inserindo dados na tabela MEDICAMENTO
+INSERT INTO medicamento (nome_comercial, principio_ativo) VALUES
+('Losartana Potássica 50mg', 'Losartana'),
+('Metformina 850mg', 'Cloridrato de Metformina'),
+('Atenolol 25mg', 'Atenolol'),
+('Glibenclamida 5mg', 'Glibenclamida');
+
+-- Relacionando médicos e pacientes na tabela ACOMPANHA
+INSERT INTO acompanha (id_medico, id_paciente) VALUES
+(1, 1), -- Dr. Roberto acompanha Carlos
+(2, 2), -- Dra. Lúcia acompanha Mariana
+(1, 3), -- Dr. Roberto acompanha João Pedro
+(2, 4); -- Dra. Lúcia acompanha Ana
+
+-- Relacionando diagnósticos aos pacientes na tabela DIAGNOSTICA
+INSERT INTO diagnostica (id_paciente, id_doenca) VALUES
+(1, 1), -- Carlos tem Hipertensão
+(2, 2), -- Mariana tem Diabetes
+(3, 1), -- João Pedro tem Hipertensão
+(4, 2); -- Ana tem Diabetes
+
+-- Criando prescrições na tabela PRESCRICAO
+INSERT INTO prescricao (id_medico, id_paciente, id_medicamento, data_inicio, dosagem, frequencia, instrucoes_adicionais) VALUES
+(1, 1, 1, '2024-01-10', '1 comprimido', '1 vez ao dia', 'Tomar pela manhã.'),
+(2, 2, 2, '2024-02-15', '1 comprimido', '2 vezes ao dia', 'Tomar após o café da manhã e após o jantar.'),
+(1, 3, 3, '2024-03-20', '1 comprimido', '1 vez ao dia', 'Tomar antes de dormir.'),
+(2, 4, 4, '2024-04-05', '1 comprimido', '1 vez ao dia', 'Tomar 30 minutos antes do almoço.');
+
+-- Criando lembretes para as prescrições na tabela LEMBRETE
+INSERT INTO lembrete (id_prescricao, horario_programado, status) VALUES
+(1, '2025-09-28 08:00:00', 'Pendente'),
+(2, '2025-09-28 09:00:00', 'Pendente'),
+(2, '2025-09-28 20:00:00', 'Pendente'),
+(3, '2025-09-28 22:00:00', 'Pendente');
+
+-- Inserindo medições genéricas na tabela MEDICAO
+INSERT INTO medicao (id_paciente, data_hora, observacoes) VALUES
+(1, '2025-09-27 09:00:00', 'Medição de rotina da pressão.'),
+(2, '2025-09-27 08:30:00', 'Medição de glicose em jejum.'),
+(1, '2025-09-28 09:05:00', 'Medição após caminhada leve.');
+
+-- Inserindo medições específicas de pressão na tabela MEDICAO_PRESSAO
+INSERT INTO medicao_pressao (id_medicao, pressao_sistolica, pressao_diastolica) VALUES
+(1, 13.8, 8.5),
+(3, 13.2, 8.1);
+
+-- Inserindo medições específicas de glicemia na tabela MEDICAO_GLICEMIA
+INSERT INTO medicao_glicemia (id_medicao, nivel_glicose, periodo) VALUES
+(2, 99.00, 'Jejum');
