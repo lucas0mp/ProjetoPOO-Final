@@ -2,15 +2,32 @@ package model;
 
 import java.util.Date;
 
+/**
+ * Model Lembrete (Modelo de Dados)
+ * * Esta classe representa a entidade "Lembrete" do banco de dados.
+ * * E uma classe POJO (Plain Old Java Object), usada para transportar dados
+ * entre o DAO (banco) e as Views (telas).
+ * * O principal conceito de POO aplicado aqui e o **ENCAPSULAMENTO**.
+ */
 public class Lembrete {
 
-    // Campos da tabela 'lembrete' 
+    // --- Atributos ---
+    
+    // **ENCAPSULAMENTO**: Todos os atributos sao 'private'.
+    // O acesso a eles (leitura e escrita) e controlado
+    // atraves dos metodos publicos (getters e setters) abaixo.
+
+    // Campos que existem diretamente na tabela 'lembrete' 
     private int id_lembrete;
-    private int id_prescricao;
+    private int id_prescricao; // Chave estrangeira que liga o lembrete a uma prescricao
     private Date horario_programado;
     private String status;
     
-    // Campos extras (para exibir dados do JOIN)
+    // **ABSTRACAO (de dados)**: Estes campos NAO existem na tabela 'lembrete'.
+    // Eles sao adicionados a este Model para facilitar o transporte de dados
+    // vindos de um JOIN (la no LembreteDAO). O DAO busca o nome do medicamento
+    // e a dosagem (de outras tabelas) e "abstrai" eles para dentro deste
+    // unico objeto, simplificando a vida do Controller e da View.
     private String nomeMedicamento;
     private String dosagem;
 

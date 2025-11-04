@@ -1,7 +1,20 @@
 package model;
 
+/**
+ * Model Medicamento (Modelo de Dados)
+ * * Esta classe representa a entidade "Medicamento" do banco de dados.
+ * * E uma classe POJO (Plain Old Java Object), usada para transportar dados
+ * (como o ID do remedio, nome comercial e principio ativo)
+ * entre o DAO e os Controllers/Views.
+ * * O principal conceito de POO aplicado aqui e o **ENCAPSULAMENTO**.
+ */
 public class Medicamento {
 
+    // --- Atributos ---
+    
+    // **ENCAPSULAMENTO**: Todos os atributos sao 'private'.
+    // O acesso a eles (leitura e escrita) e controlado
+    // atraves dos metodos publicos (getters e setters) abaixo.
     private int id_medicamento;
     private String nome_comercial;
     private String principio_ativo;

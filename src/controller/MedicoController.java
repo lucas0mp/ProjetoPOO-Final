@@ -1,51 +1,50 @@
 package controller;
 
-// Imports para Models
 import model.Lembrete;
 import model.MedicaoGlicemia;
 import model.MedicaoPressao;
 import model.Medico;
 import model.Paciente;
 import model.Prescricao;
-
-// Imports para DAOs
 import dao.AcompanhaDAO;
 import dao.LembreteDAO;
 import dao.MedicaoDAO;
 import dao.PacienteDAO;
 import dao.PrescricaoDAO;
-
-// Imports para Views
 import view.MedicaoView;
 import view.MedicoView;
 import view.PacienteView;
-
 // Imports do Java
 import java.sql.SQLException;
-import java.sql.Statement; // Importante para o DAO de Paciente
+import java.sql.Statement;
 import java.util.Calendar;
 import java.util.List;
 
 
+/**
+ * Controller para o Medico.
+ * Gerencia a logica de negocios do portal do medico.
+ * E iniciado pelo LoginController quando um medico faz login.
+ */
 public class MedicoController {
     
     // --- Atributos do Controller ---
     
+    // Guarda o medico que fez login
     private Medico medicoLogado;
+    // Views e DAOs necessarios para as operacoes
     private MedicoView view;
-    
-    // Views e DAOs necessários para as operações do Médico
     private PacienteView pacienteView;
     private PacienteDAO pacienteDAO;
     private MedicaoView medicaoView;
     private MedicaoDAO medicaoDAO;
     private PrescricaoDAO prescricaoDAO;
     private LembreteDAO lembreteDAO;
-    private AcompanhaDAO acompanhaDAO; // Para atribuição automática
+    private AcompanhaDAO acompanhaDAO; // Para associacao automatica medico-paciente
 
     /**
-     * Construtor do Controller. Recebe o médico que fez login
-     * e inicializa todas as classes de DAO e View necessárias.
+     * Construtor. Recebe o medico que fez login
+     * e inicializa todas as classes de DAO e View necessarias.
      */
     public MedicoController(Medico medicoLogado) {
         this.medicoLogado = medicoLogado;
@@ -60,18 +59,19 @@ public class MedicoController {
         this.medicaoDAO = new MedicaoDAO();
         this.prescricaoDAO = new PrescricaoDAO();
         this.lembreteDAO = new LembreteDAO();
-        this.acompanhaDAO = new AcompanhaDAO(); // Inicializa o novo DAO
+        this.acompanhaDAO = new AcompanhaDAO(); 
     }
     
     /**
-     * Ponto de entrada e loop principal do menu do Médico.
+     * Ponto de entrada e loop principal do menu do Medico.
      */
     public void iniciar() {
         int opcao;
         do {
+            // 1. Exibe o menu principal do medico e pega a opcao
             opcao = view.exibirMenuMedico();
             
-            // Switch com a lógica corrigida
+            // 2. Direciona a acao
             switch (opcao) {
                 case 1:
                     criarPaciente();
@@ -89,52 +89,51 @@ public class MedicoController {
                     view.exibirMensagem("Voltando ao menu principal (Logout)...");
                     break;
                 default:
-                    view.exibirMensagem("Opção inválida!");
+                    view.exibirMensagem("Opcao invalida!");
             }
-        } while (opcao != 0);
+        } while (opcao != 0); // Repete ate o medico escolher 0 (Sair)
     }
     
     /**
      * Case 1: Criar novo Paciente.
-     * Inclui o tratamento de erro para CPF duplicado e
-     * a atribuição automática do paciente ao médico logado.
+     * Logica principal:
+     * 1. Salva o paciente.
+     * 2. Associa automaticamente o paciente ao medico logado (tabela 'acompanha').
      */
     private void criarPaciente() {
         view.exibirMensagem("--- Cadastro de Novo Paciente ---");
+        // 1. Coleta dados do paciente (nome, cpf, etc) e senha
         Paciente p = pacienteView.obterDadosPaciente(null);
         String senha = pacienteView.obterSenha();
 
         try {
             // --- PARTE 1: SALVAR O PACIENTE ---
-            // Tenta salvar o paciente e pegar o ID gerado (requer o PacienteDAO modificado)
+            // Tenta salvar o paciente e pegar o ID gerado pelo banco
             int novoIdPaciente = pacienteDAO.salvar(p, senha);
             
             if (novoIdPaciente == -1) {
-                // Falha se o DAO não retornar um ID válido
-                throw new SQLException("Falha ao criar paciente, ID não foi gerado.");
+                throw new SQLException("Falha ao criar paciente, ID nao foi gerado.");
             }
-            
             view.exibirMensagem("Paciente salvo com sucesso! (ID: " + novoIdPaciente + ")");
             
-            // --- PARTE 2: ATRIBUIR PACIENTE AO MÉDICO (AUTOMÁTICO) ---
+            // --- PARTE 2: LOGICA DE ASSOCIACAO AUTOMATICA ---
+            // Vincula o paciente recem-criado ao medico que esta logado
             try {
                 int idMedicoLogado = medicoLogado.getId_medico();
                 acompanhaDAO.salvar(idMedicoLogado, novoIdPaciente);
-                view.exibirMensagem("Paciente '" + p.getNome() + "' foi atribuído automaticamente a você.");
+                view.exibirMensagem("Paciente '" + p.getNome() + "' foi atribuido automaticamente a voce.");
                 
             } catch (SQLException eAcompanha) {
-                // Se der erro na atribuição (ex: já existe), só avisa
-                view.exibirMensagem("\nAVISO: Paciente salvo, mas falha ao atribuir a você (erro: " + eAcompanha.getMessage() + ")");
+                // Se der erro aqui (ex: ja existe), apenas avisa, pois o paciente foi salvo
+                view.exibirMensagem("\nAVISO: Paciente salvo, mas falha ao atribuir a voce (erro: " + eAcompanha.getMessage() + ")");
             }
 
         } catch (SQLException e) {
             // --- TRATAMENTO DE ERRO (ex: CPF DUPLICADO) ---
-            // Código 1062 = Duplicate entry (MySQL)
-            // SQLState 23000 = Integrity Constraint Violation (Padrão SQL)
+            // Codigo 1062 = Erro de entrada duplicada (UNIQUE) no MySQL
             if (e.getErrorCode() == 1062 || e.getSQLState().equals("23000")) {
-                view.exibirMensagem("\nERRO: O CPF '" + p.getCpf() + "' já pertence a outra pessoa. Tente novamente.");
+                view.exibirMensagem("\nERRO: O CPF '" + p.getCpf() + "' ja pertence a outra pessoa. Tente novamente.");
             } else {
-                // Outro erro inesperado
                 view.exibirMensagem("\nErro inesperado de banco de dados ao salvar paciente:");
                 e.printStackTrace();
             }
@@ -143,50 +142,50 @@ public class MedicoController {
     
     /**
      * Case 2: Listar Pacientes.
-     * Lista apenas os pacientes vinculados a este médico na tabela 'acompanha'.
+     * Lista APENAS os pacientes vinculados a este medico.
      */
     private void listarMeusPacientes() {
         view.exibirMensagem("--- Meus Pacientes ---");
-        // Usa o método do DAO para listar apenas os pacientes
-        // que este médico acompanha
+        // Chama o metodo do DAO que busca pacientes por ID do medico
         List<Paciente> pacientes = pacienteDAO.listarPorMedico(medicoLogado.getId_medico());
+        // Envia a lista para a View exibir
         pacienteView.listarPacientes(pacientes);
     }
     
     /**
-     * Case 3: Adicionar Prescrição e Lembrete.
-     * Guia o médico pela criação de uma prescrição e um lembrete associado.
+     * Case 3: Adicionar Prescricao e Lembrete.
+     * Fluxo: 1. Escolhe Paciente -> 2. Cria Prescricao -> 3. Cria Lembrete
      */
     private void adicionarPrescricao() {
-        view.exibirMensagem("--- Adicionar Prescrição ---");
+        view.exibirMensagem("--- Adicionar Prescricao ---");
         
-        // 1. Listar e escolher o paciente
+        // 1. Lista e seleciona o paciente
         listarMeusPacientes();
         int idPaciente = pacienteView.obterIdPaciente("SELECIONAR");
         if (idPaciente == -1) {
-            view.exibirMensagem("Operação cancelada.");
+            view.exibirMensagem("Operacao cancelada.");
             return;
         }
         
-        // 2. Obter dados da prescrição
+        // 2. Coleta dados da prescricao
         Prescricao p = view.obterDadosPrescricao(medicoLogado.getId_medico(), idPaciente);
         
-        // 3. Salvar prescrição e obter o ID gerado
+        // 3. Salva a prescricao e pega o ID gerado
         int idPrescricao = prescricaoDAO.salvar(p);
         if (idPrescricao == -1) {
-            view.exibirMensagem("Falha ao salvar a prescrição.");
+            view.exibirMensagem("Falha ao salvar a prescricao.");
             return;
         }
         
-        // 4. Obter dados do lembrete (horário)
+        // 4. Coleta o horario para o lembrete
         String horaMinuto = view.obterHorarioLembrete(); // Espera "HH:mm"
         
-        // 5. Criar e salvar o objeto Lembrete
+        // 5. Cria e salva o objeto Lembrete
         try {
             Lembrete lembrete = new Lembrete();
-            lembrete.setId_prescricao(idPrescricao);
+            lembrete.setId_prescricao(idPrescricao); // Vincula o lembrete a prescricao
             
-            // Define a data/hora do lembrete (simplificado para hoje)
+            // Converte a string "HH:mm" em um objeto Date
             String[] partes = horaMinuto.split(":");
             Calendar cal = Calendar.getInstance();
             cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(partes[0]));
@@ -194,66 +193,71 @@ public class MedicoController {
             cal.set(Calendar.SECOND, 0);
             
             lembrete.setHorario_programado(cal.getTime());
-            lembrete.setStatus("Pendente"); // Status padrão
+            lembrete.setStatus("Pendente"); // Status padrao
             
+            // Salva o lembrete no banco
             lembreteDAO.salvar(lembrete);
-            view.exibirMensagem("Prescrição e Lembrete salvos com sucesso!");
+            view.exibirMensagem("Prescricao e Lembrete salvos com sucesso!");
             
         } catch (Exception e) {
-            // Captura erros de formato de hora (ex: "abc" em vez de "08:00")
+            // Trata erro de formato de hora (ex: "abc" em vez de "08:00")
             view.exibirMensagem("Erro ao criar data do lembrete (use formato HH:mm): " + e.getMessage());
         }
     }
 
     /**
-     * Case 4: Adicionar Medição.
-     * Permite ao médico registrar uma medição de Glicemia ou Pressão
-     * para um paciente.
+     * Case 4: Adicionar Medicao.
+     * Permite ao medico registrar Glicemia ou Pressao para um paciente.
      */
     private void adicionarMedicao() {
-        view.exibirMensagem("--- Adicionar Medição ---");
+        view.exibirMensagem("--- Adicionar Medicao ---");
         
-        // 1. Listar e escolher o paciente
+        // 1. Lista e seleciona o paciente
         listarMeusPacientes();
         int idPaciente = pacienteView.obterIdPaciente("SELECIONAR");
         if (idPaciente == -1) {
-            view.exibirMensagem("Operação cancelada.");
+            view.exibirMensagem("Operacao cancelada.");
             return;
         }
         
-        // 2. Escolher tipo de medição (Glicemia ou Pressão)
+        // 2. Escolher tipo de medicao (Glicemia ou Pressao)
         int tipoMedicao = medicaoView.exibirMenuTipoMedicao();
         
         switch(tipoMedicao) {
             case 1: // Glicemia
                 try {
+                    // Pede os dados de glicemia
                     MedicaoGlicemia mg = medicaoView.obterDadosGlicemia(idPaciente);
+                    // Salva no banco (DAO cuida da transacao em duas tabelas)
                     if (medicaoDAO.salvarGlicemia(mg)) {
-                        view.exibirMensagem("Medição de Glicemia salva com sucesso!");
+                        view.exibirMensagem("Medicao de Glicemia salva com sucesso!");
                     } else {
-                        view.exibirMensagem("Erro ao salvar medição de Glicemia.");
+                        view.exibirMensagem("Erro ao salvar medicao de Glicemia.");
                     }
                 } catch (NumberFormatException e) {
-                    view.exibirMensagem("Erro: Nível de glicose deve ser um número.");
+                    // Trata erro se o usuario digitar texto no lugar de numero
+                    view.exibirMensagem("Erro: Nivel de glicose deve ser um numero.");
                 }
                 break;
-            case 2: // Pressão
+            case 2: // Pressao
                 try {
+                    // Pede os dados de pressao
                     MedicaoPressao mp = medicaoView.obterDadosPressao(idPaciente);
+                    // Salva no banco
                     if (medicaoDAO.salvarPressao(mp)) {
-                        view.exibirMensagem("Medição de Pressão salva com sucesso!");
+                        view.exibirMensagem("Medicao de Pressao salva com sucesso!");
                     } else {
-                        view.exibirMensagem("Erro ao salvar medição de Pressão.");
+                        view.exibirMensagem("Erro ao salvar medicao de Pressao.");
                     }
                 } catch (NumberFormatException e) {
-                    view.exibirMensagem("Erro: Pressão deve ser um número (use ponto, ex: 12.0).");
+                    view.exibirMensagem("Erro: Pressao deve ser um numero (use ponto, ex: 12.0).");
                 }
                 break;
             case 0:
-                view.exibirMensagem("Operação cancelada.");
+                view.exibirMensagem("Operacao cancelada.");
                 break;
             default:
-                view.exibirMensagem("Tipo de medição inválido.");
+                view.exibirMensagem("Tipo de medicao invalido.");
         }
     }
 }

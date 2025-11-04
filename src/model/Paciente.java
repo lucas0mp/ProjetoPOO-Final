@@ -2,10 +2,22 @@ package model;
 
 import java.util.Date;
 
-// [Source: 2]
+/**
+ * Model Paciente (Modelo de Dados)
+ * * Esta classe representa a entidade "Paciente" no sistema.
+ * * E uma classe POJO (Plain Old Java Object), usada para transportar dados
+ * * (ID, nome, CPF, etc.) entre o DAO (banco) e os Controllers/Views.
+ * * Conceitos de POO aplicados: **ENCAPSULAMENTO** e **POLIMORFISMO**.
+ * * (Nao ha Heranca customizada ou Abstracao nesta classe especifica).
+ */
 public class Paciente {
     
-    // Encapsulamento: Atributos privados
+    // --- Atributos ---
+    
+    // **ENCAPSULAMENTO**: Todos os atributos (dados) da classe sao 'private'.
+    // Isso protege os dados de acesso direto ou modificacao
+    // por outras classes. O acesso e controlado pelos metodos
+    // publicos (getters e setters) abaixo.
     private int id_paciente;
     private String nome;
     private String cpf;
@@ -66,6 +78,13 @@ public class Paciente {
         this.email = email;
     }
 
+    /**
+     * **POLIMORFISMO** (Sobrescrita de Metodo):
+     * * O metodo 'toString()' e universal (herdado da classe 'Object').
+     * * Aqui, estamos sobrescrevendo (@Override) o comportamento padrao
+     * * para fornecer uma representacao em String util para o Paciente.
+     * * (Usado na PacienteView, no metodo 'listarPacientes').
+     */
     @Override
     public String toString() {
         return "ID: " + id_paciente + 

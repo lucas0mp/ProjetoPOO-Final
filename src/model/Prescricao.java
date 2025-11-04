@@ -2,8 +2,22 @@ package model;
 
 import java.util.Date;
 
+/**
+ * Model Prescricao (Modelo de Dados)
+ * * Esta classe representa a entidade "Prescricao" do banco de dados.
+ * * E uma classe POJO (Plain Old Java Object), usada para transportar dados
+ * * (ID do medico, ID do paciente, dosagem, etc.) entre o DAO e os Controllers.
+ * * O principal conceito de POO aplicado aqui e o **ENCAPSULAMENTO**.
+ * * (Nao ha Heranca customizada, Polimorfismo ou Abstracao nesta classe).
+ */
 public class Prescricao {
 
+    // --- Atributos ---
+    
+    // **ENCAPSULAMENTO**: Todos os atributos (dados) da classe sao 'private'.
+    // Isso significa que eles nao podem ser acessados ou modificados diretamente
+    // por nenhuma outra classe. O acesso e controlado pelos metodos
+    // publicos (getters e setters) abaixo.
     private int id_prescricao;
     private int id_medico;
     private int id_paciente;
